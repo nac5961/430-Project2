@@ -6,6 +6,17 @@
 	If not, the request will stop being processed.
 */
 
+// Middleware to check if the user is requesting
+// an invalid url, in which case we'll re-route
+// them accordingly
+const rerouteNotFound = (req, res) => {
+  if (!req.session.account) {
+    return res.redirect('/'); // Not logged in - reroute to homePage
+  }
+
+  return res.redirect('/display'); // Logged in - reroute to displayPage
+};
+
 // Middleware to check if the user needs to be logged in
 // to see the page and redirects them appropriately
 // if they are logged out
@@ -41,6 +52,7 @@ const requiresSecure = (req, res, next) => {
 // Middleware to bypass the check for HTTPS when in development
 const bypassSecure = (req, res, next) => next();
 
+module.exports.rerouteNotFound = rerouteNotFound;
 module.exports.requiresLogin = requiresLogin;
 module.exports.requiresLogout = requiresLogout;
 

@@ -6,10 +6,28 @@
 	Overdue Color - #b65c5c
 */
 
+#message{
+	display: none;
+	position: absolute;
+	left: 45%;
+	bottom: 100px;
+	width: 200px;
+	color: white;
+	text-align: center;
+	padding: 5px;
+	border-radius: 6px;
+	background-color: #327785;
+	box-shadow: 0px 2px 4px rgba(0,0,0,0.3);
+}
+
 html, body{
 	margin: 0;
 	padding: 0;
 	font-family: Arial;
+}
+
+body{
+	min-width: 800px;
 }
 
 h1 {
@@ -33,6 +51,10 @@ a{
 a:hover{
 	cursor: pointer;
 	text-decoration: underline;
+}
+
+button:focus{
+	outline: none;
 }
 
 button:hover{
@@ -81,6 +103,20 @@ header {
 	text-decoration: none;
 }
 
+#premium{
+	color: #71c0cf;
+	padding: 5px 10px;
+	margin: 15px 40px 0 0;
+	background-color: white;
+	border-radius: 6px;
+}
+
+#premium:hover{
+	color: white;
+	text-decoration: none;
+	background-color: #327785;
+}
+
 .nav{
 	float: right;
 	margin: 20px 40px 0 0;
@@ -103,6 +139,62 @@ header {
 	cursor: pointer;
 }
 
+#premium-container{
+	width: 60%;
+	margin: 50px auto;
+	text-align: center;
+	overflow: auto;
+}
+
+#premium-container div{
+	overflow: auto;
+}
+
+#premium-container h1{
+	margin-bottom: 30px;
+}
+
+#premium-container button{
+	margin-right: 25px;
+	margin-top: 30px;
+}
+
+#premium-container button:hover{
+	background-color: #71c0cf;
+	cursor: default;
+	border: 1px solid #71c0cf;
+}
+
+.premium-info{
+	width: 30%;
+	margin-right: 3%;
+	margin-top: 20px;
+	margin-bottom: 20px;
+	float: left;
+}
+
+#about {
+	width: 50%;
+	margin: 50px auto 0 auto;
+	padding: 30px;
+	border-radius: 10px;
+	border: 1px solid #ddd;
+}
+
+#about h1 {
+	text-align: center;
+	margin-bottom: 20px;
+}
+
+#about-text {
+	font-size: 18px;
+}
+
+#developer{
+	font-size: 14px;
+	text-align: center;
+}
+
 #home-container{
 	width: 65%;
 	margin: 80px auto 0 auto;
@@ -110,7 +202,7 @@ header {
 }
 
 #intro{
-	width: 40%;
+	width: 42%;
 	float: left;
 	border-radius: 10px;
 	border: 1px solid #ddd;
@@ -257,6 +349,8 @@ header {
 	width: 40%;
 	margin-left: 25px;
 	margin-right: 25px;
+	overflow: hidden;
+	text-overflow: ellipsis;
 }
 
 .payment-cost{
@@ -301,9 +395,14 @@ header {
 	padding-left: 25px;
 }
 
-#form-creation-container{
-	width: 25%;
+#form-creation-container, #password-form-container{
+	/*width: 25%;*/
+	width: 420px;
 	margin: 60px auto 0 auto;
+	text-align: center;
+}
+
+#password-form-container h1{
 	text-align: center;
 }
 
@@ -345,7 +444,7 @@ button#update-button{
 	border: 1px solid #4894a3;
 }
 
-#payment-form{
+#payment-form, #password-form{
 	overflow: auto;
 	text-align: center;
 	margin: 40px auto 20px auto;
@@ -354,23 +453,23 @@ button#update-button{
 	border-radius: 6px;
 }
 
-#payment-form #payment-form-submit{
+#payment-form #payment-form-submit, #password-form #password-form-submit{
 	margin-top: 15px;
 }
 
-#payment-form input, #payment-form label{
+#payment-form input, #payment-form label, #password-form input, #password-form label{
 	margin: 0;
 	font-size: 14px;
 	clear: left;
 	float: left;
 }
 
-#payment-form input{
+#payment-form input, #password-form input{
 	width: 100%;
 	margin-bottom: 15px;
 }
 
-#payment-form label{
+#payment-form label, #password-form label{
 	margin-bottom: 5px;
 }
 
@@ -418,4 +517,48 @@ button#update-button{
 	background: url("/assets/img/delete-icon-hover.png") no-repeat left top;
 	cursor: pointer;
 	color: #4894a3;
+}
+
+@media screen and (max-width: 1400px){
+	#results-container{
+		width: 80%;
+	}
+	
+	#home-container{
+		width: 80%;
+	}
+	
+	#intro{
+		width: 45%;
+	}
+}
+
+@media screen and (max-width: 1100px){
+	#results-container{
+		width: 95%;
+	}
+	
+	#home-container{
+		width: 95%;
+	}
+	
+	#premium-container button{
+		margin-right: 0;
+	}
+	
+	.premium-info{
+		width: 90%;
+		margin: 20px auto;
+		float: none;
+	}
+}
+
+@media screen and (max-width: 900px){	
+	#filter{
+		width: 25%;
+	}
+	
+	#intro{
+		width: 48%;
+	}
 }

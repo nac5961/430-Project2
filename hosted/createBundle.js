@@ -6,16 +6,31 @@ var handlePayment = function handlePayment(e) {
 	e.preventDefault();
 
 	//Handle invalid input
-	if ($("#name").val() === '' || $("#cost").val() === '' || $("#dueDate").val() === '') {
-		handleError("All fields are required");
+	if ($("#name").val() === '' || $("#cost").val() === '' || $("#datepicker").val() === '') {
+		displayMessage("All fields are required");
 		return false;
 	}
 
 	//Send the AJAX request
-	sendAjax($("#payment-form").attr("method"), $("#payment-form").attr("action"), $("#payment-form").serialize(), redirect);
+	sendAjax($("#payment-form").attr("method"), $("#payment-form").attr("action"), $("#payment-form").serialize(), function (json) {
+		//Clear the form if a payment was successfully created/updated
+		if (json.success) {
+			clearForm();
+		}
+
+		//Display message from the server
+		displayMessage(json.message);
+	});
 
 	//Prevent the form from changing pages
 	return false;
+};
+
+//Function to clear the form after a successful submission
+var clearForm = function clearForm() {
+	document.getElementById('name').value = '';
+	document.getElementById('cost').value = '';
+	document.getElementById('datepicker').value = '';
 };
 
 //Function to use React to dynamically create the payment form
@@ -25,18 +40,14 @@ var PaymentForm = function PaymentForm(props) {
 	var submitLabel = 'Create Payment';
 	var method = 'POST';
 	var action = '/createPayment';
-	var createButtonClass = 'active-button';
-	var updateButtonClass = 'inactive-button';
 
-	//Change label if this is the update form
+	//Change variables if this is the update form
 	if (props.isUpdate) {
 		costLabel = "Updated " + costLabel;
 		dateLabel = "Updated " + dateLabel;
 		submitLabel = 'Update Payment';
 		method = 'PUT';
 		action = '/updatePayment';
-		createButtonClass = 'inactive-button';
-		updateButtonClass = 'active-button';
 	}
 
 	return React.createElement(
@@ -50,79 +61,123 @@ var PaymentForm = function PaymentForm(props) {
 			{ htmlFor: "name" },
 			"Payment"
 		),
-		React.createElement("input", { className: "input-button", type: "text", name: "name", placeholder: "Payment Name" }),
+		React.createElement("input", { className: "input-button", type: "text", id: "name", name: "name", maxLength: "30", pattern: "^[a-zA-Z0-9]+( [a-zA-Z0-9]+)*$", title: "Please enter alphanumeric characters only; No trailing or leading spaces (Max: 30 characters)", placeholder: "Payment Name" }),
 		React.createElement(
 			"label",
 			{ htmlFor: "cost" },
 			costLabel
 		),
-		React.createElement("input", { className: "input-button", type: "number", name: "cost", placeholder: "$Amount" }),
+		React.createElement("input", { className: "input-button", type: "number", id: "cost", name: "cost", step: "0.01", placeholder: "$Amount" }),
 		React.createElement(
 			"label",
 			{ htmlFor: "dueDate" },
 			dateLabel
 		),
 		React.createElement("input", { className: "input-button", id: "datepicker", name: "dueDate", placeholder: "MM/DD/YYYY" }),
-		React.createElement("input", { type: "hidden", name: "_csrf", value: props.csrf }),
+		React.createElement("input", { id: "csrfToken", type: "hidden", name: "_csrf", value: props.csrf }),
 		React.createElement("input", { id: "payment-form-submit", className: "submit input-button", type: "submit", value: submitLabel })
 	);
 };
 
-//Function to render forms and setup page links
-var setup = function setup(csrf) {
-	var createButton = document.getElementById('create-button');
-	var updateButton = document.getElementById('update-button');
+//Function to switch the active button
+var switchActiveButton = function switchActiveButton(activeButton, inactiveButton) {
+	//Make the active button active
+	activeButton.classList.add('active-button');
+	activeButton.classList.remove('inactive-button');
 
-	createButton.onclick = function (e) {
-		ReactDOM.render(React.createElement(PaymentForm, { csrf: csrf }), document.getElementById("form-creation-content"));
+	//Make the inactive button inactive
+	inactiveButton.classList.add('inactive-button');
+	inactiveButton.classList.remove('active-button');
+};
 
-		createButton.classList.add('active-button');
-		createButton.classList.remove('inactive-button');
-
-		updateButton.classList.add('inactive-button');
-		updateButton.classList.remove('active-button');
-
-		$("#datepicker").datepicker({
-			format: 'mm/dd/yyyy',
-			startDate: '-3d'
-		});
-	};
-
-	updateButton.onclick = function (e) {
-		ReactDOM.render(React.createElement(PaymentForm, { csrf: csrf, isUpdate: "true" }), document.getElementById("form-creation-content"));
-
-		updateButton.classList.add('active-button');
-		updateButton.classList.remove('inactive-button');
-
-		createButton.classList.add('inactive-button');
-		createButton.classList.remove('active-button');
-
-		$("#datepicker").datepicker({
-			format: 'mm/dd/yyyy',
-			startDate: '-3d'
-		});
-	};
-
-	document.getElementById('logout-button').onclick = function () {
-		sendAjax('GET', '/logout', null, null);
-	};
-
-	document.getElementById('display-page-button').onclick = function (e) {
-		sendAjax('GET', '/display', null, null);
-	};
-
-	ReactDOM.render(React.createElement(PaymentForm, { csrf: csrf }), document.getElementById("form-creation-content"));
-
+//Function to make the datepicker functional
+var setupDatepicker = function setupDatepicker() {
 	$("#datepicker").datepicker({
 		format: 'mm/dd/yyyy',
-		startDate: '-3d'
+		todayHighlight: true,
+		autoclose: true
 	});
 };
 
-//Function to get a CSRF token from the server for security
-var getToken = function getToken() {
-	sendAjax('GET', '/getToken', null, function (data) {
-		setup(data.csrfToken);
+//Function to render forms and setup page links
+var setupUI = function setupUI(csrf) {
+	var createButton = document.getElementById('create-button');
+	var updateButton = document.getElementById('update-button');
+
+	//Event listener for create button
+	createButton.onclick = function () {
+		//Render create form
+		ReactDOM.render(React.createElement(PaymentForm, { csrf: csrf }), document.getElementById("form-creation-content"));
+
+		//Only clear the form if the button is inactive
+		if (createButton.className === 'inactive-button') {
+			clearForm();
+		}
+
+		//Make the create button active and the update button inactive
+		switchActiveButton(createButton, updateButton);
+
+		//Make the date picker functional
+		setupDatepicker();
+	};
+
+	//Event listener for update button
+	updateButton.onclick = function () {
+		//Render update form
+		ReactDOM.render(React.createElement(PaymentForm, { csrf: csrf, isUpdate: "true" }), document.getElementById("form-creation-content"));
+
+		//Only clear the form if the button is inactive
+		if (updateButton.className === 'inactive-button') {
+			clearForm();
+		}
+
+		//Make the update button active and the create button inactive
+		switchActiveButton(updateButton, createButton);
+
+		//Make the date picker functional
+		setupDatepicker();
+	};
+
+	sendAjax('GET', '/getTemp', null, function (temp) {
+		//A temp payment was created - accessing create page from Edit
+		if (temp.payment) {
+			//Render update form
+			ReactDOM.render(React.createElement(PaymentForm, { csrf: csrf, isUpdate: "true" }), document.getElementById("form-creation-content"));
+
+			//Make the update button active and the create button inactive
+			switchActiveButton(updateButton, createButton);
+
+			//Get the input fields of the form
+			var nameField = document.getElementById('name');
+			var costField = document.getElementById('cost');
+			var dateField = document.getElementById('datepicker');
+
+			//Set the values to the payment
+			nameField.value = temp.payment.name;
+			costField.value = temp.payment.cost;
+			dateField.value = moment(new Date(temp.payment.dueDate), 'MM-DD-YYYY').format('M/D/YYYY');
+
+			//Get the csrfToken and turn it into JSON for the AJAX request
+			var csrfToken = document.getElementById('csrfToken').value;
+			var csrfTokenJSON = {
+				_csrf: csrfToken
+			};
+
+			//Delete the temp payment, since we already extracted the data
+			//Note: If the temp payment is not deleted, when we access the
+			//create page normally, it will always act like we just clicked
+			//the Edit button and auto-fill the form
+			sendAjax('DELETE', '/removeTemp', csrfTokenJSON, null);
+		}
+
+		//No temp payment - Accessing the create page regularly
+		else {
+				//Render create form
+				ReactDOM.render(React.createElement(PaymentForm, { csrf: csrf }), document.getElementById("form-creation-content"));
+			}
+
+		//Make the date picker functional
+		setupDatepicker();
 	});
 };
 
@@ -130,20 +185,32 @@ var getToken = function getToken() {
 //Make a call to get the token and render the forms
 //when the page loads
 $(document).ready(function () {
-	getToken();
+	getToken(function (token) {
+		setupUI(token.csrfToken);
+	});
 });
-"use strict";
+'use strict';
 
-//Function to display errors
-var handleError = function handleError(message) {
-	//const errorMessage = document.querySelector("#errorMessage");
-	//errorMessage.textContent = message;
-	console.log(message);
+//Function to display errors and other messages
+var displayMessage = function displayMessage(message) {
+	var messageElement = document.getElementById('message');
+	messageElement.textContent = message;
+
+	$("#message").stop(true, true).fadeIn('slow').animate({ opacity: 1 }, 2000).fadeOut('slow');
 };
 
-//Function to redirect the user to another page
+//Function to redirect the user to another page or display a message
 var redirect = function redirect(response) {
-	window.location = response.redirect;
+	if (response.redirect) {
+		window.location = response.redirect;
+	} else if (response.message) {
+		displayMessage(response.message);
+	}
+};
+
+//Function to get a CSRF token from the server for security
+var getToken = function getToken(callback) {
+	sendAjax('GET', '/getToken', null, callback);
 };
 
 //Function to send an AJAX request to the server
@@ -154,12 +221,14 @@ var sendAjax = function sendAjax(type, action, data, callback) {
 		url: action,
 		data: data,
 		dataType: "json",
-		success: function success(json) {
-			callback(json);
+		success: function success(returnedJSON) {
+			callback(returnedJSON);
 		},
 		error: function error(xhr, status, _error) {
-			var messageObj = JSON.parse(xhr.responseText);
-			handleError(messageObj.error);
+			if (xhr && xhr.status !== 200) {
+				var messageObj = JSON.parse(xhr.responseText);
+				displayMessage(messageObj.error);
+			}
 		}
 	});
 };

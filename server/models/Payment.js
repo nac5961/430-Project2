@@ -21,8 +21,15 @@ const PaymentSchema = new mongoose.Schema({
   name: {
     type: String,
     trim: true,
-    unique: true,
     required: true,
+    set: setString,
+    match: /^[a-zA-Z0-9]+( [a-zA-Z0-9]+)*$/,
+  },
+  nameAndId: {
+    type: String,
+    trim: true,
+    required: true,
+    unique: true,
     set: setString,
   },
   cost: {
@@ -42,11 +49,11 @@ const PaymentSchema = new mongoose.Schema({
 
 // Function to get payment information that we want to store
 // in a user's session (this is the information we store in
-// req.session.account)
+// req.session.payment)
 PaymentSchema.statics.toSession = (doc) => ({
   name: doc.name,
   cost: doc.cost,
-  dueDue: doc.dueDate,
+  dueDate: doc.dueDate,
 });
 
 // Function to get all payments by the owner
@@ -58,6 +65,16 @@ PaymentSchema.statics.findAllByOwner = (ownerId, callback) => {
   return PaymentModel.find(query).select('name cost dueDate').exec(callback);
 };
 
+// Function to find one payment by the owner
+PaymentSchema.statics.findOneByOwner = (name, ownerId, callback) => {
+  const query = {
+    name,
+    ownerId: convertId(ownerId),
+  };
+
+  return PaymentModel.findOne(query).select('name cost dueDate').exec(callback);
+};
+
 // Function to delete one payment by the owner
 PaymentSchema.statics.deleteOneByOwner = (name, ownerId, callback) => {
   const query = {
@@ -65,10 +82,10 @@ PaymentSchema.statics.deleteOneByOwner = (name, ownerId, callback) => {
     ownerId: convertId(ownerId),
   };
 
-  return PaymentModel.findOneAndDelete(query, callback);
+  return PaymentModel.findOneAndRemove(query, callback);
 };
 
-// Function to update on payment by the owner
+// Function to update one payment by the owner
 PaymentSchema.statics.updateOneByOwner = (name, ownerId, updatedPayment, callback) => {
   const query = {
     name,
@@ -78,6 +95,23 @@ PaymentSchema.statics.updateOneByOwner = (name, ownerId, updatedPayment, callbac
   return PaymentModel.findOneAndUpdate(query, updatedPayment, callback);
 };
 
+// Function to find payments by the owner using a filter
+PaymentSchema.statics.findPaymentsWithFilter = (ownerId, filter, sort, callback) => {
+  const query = filter;
+  query.ownerId = convertId(ownerId);
+
+  const collation = {
+    locale: 'en',
+    strength: 1,
+    caseLevel: true,
+  };
+
+  return PaymentModel.find(query)
+						.collation(collation)
+						.sort(sort)
+						.exec(callback);
+};
+
 // Create the Payment model
 PaymentModel = mongoose.model('Payment', PaymentSchema);
 
@@ -85,4 +119,3 @@ module.exports = {
   PaymentSchema,
   PaymentModel,
 };
-

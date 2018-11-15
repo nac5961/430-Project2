@@ -26,12 +26,11 @@
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.4.1/css/bootstrap-datepicker3.css"/>
 
 	<!-- Custom CSS -->
-	<link rel="stylesheet" type="text/css" href="/assets/style.css" />
+	<link rel="stylesheet" type="text/css" href="../../hosted/style.css" />
 </head>
 <body> 
 	<header>
 		<a id="logo" href="/display">Tracker</a>
-		<a id="premium" class="nav" href="/premium">Premium</a>
 		<a class="nav" href="/logout">Logout</a>
 		<a class="nav" href="/account">Account</a>
 		<a class="nav" href="/create">Create</a>
@@ -41,12 +40,46 @@
 	<p id="message"></p>
 	
 	<div id="form-creation-container">
-		<button id="create-button" class="active-button">Create New</button>
+		<button id="create-button" class="active-button" >Create New</button>
 		<button id="update-button" class="inactive-button">Update Existing</button>
 		
 		<div id="form-creation-content">
-		
+			<!-- Create New -->
+			<form id="payment-form">
+				<label>Payment</label>
+				<input class="input-button" type="text" name="paymentName" pattern="^[a-zA-Z0-9]+( [a-zA-Z0-9]+)*$" placeholder="Payment Name" />
+				<label>Cost</label>
+				<input class="input-button" type="number" name="paymentCost" placeholder="$Amount" />
+				<label>Due Date</label>
+				<input class="input-button" id="datepicker" placeholder="MM/DD/YYYY" />
+				<input id="payment-form-submit" class="submit input-button" type="submit" value="Create Payment" />
+			</form>
+			
+			<!-- Update Existing -->
+			<!--
+			<form id="payment-form">
+				<label>Payment</label>
+				<input class="input-button" type="text" name="paymentName" placeholder="Payment Name" />
+				<label>Updated Cost</label>
+				<input class="input-button" type="number" name="paymentCost" placeholder="$Amount" />
+				<label>Updated Due Date</label>
+				<input class="input-button" data-provide="datepicker" data-date-format="mm/dd/yyyy" placeholder="MM/DD/YYYY" />
+				<input id="payment-form-submit" class="submit input-button" type="submit" value="Update Payment" />
+			</form>
+			-->
 		</div>
 	</div>
+	
+	<script>
+		function init(){
+			$("#datepicker").datepicker({
+			format: 'mm/dd/yyyy',
+			todayHighlight: true,
+			autoclose: true,
+		});
+		}
+		
+		window.onload = init;
+	</script>
 </body>
 </html>

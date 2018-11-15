@@ -8,6 +8,9 @@ mongoose.Promise = global.Promise;
 // Variable to hold the AccountModel once it is created (after the Schema)
 let AccountModel = {};
 
+// Converter to convert a string id to an ObjectId
+const convertId = mongoose.Types.ObjectId;
+
 // Variables for encrypting data
 const iterations = 10000;
 const saltLength = 64;
@@ -71,6 +74,23 @@ AccountSchema.statics.findByUsername = (username, callback) => {
   return AccountModel.findOne(query, callback);
 };
 
+// Function to update a user's password
+AccountSchema.statics.updatePassword = (userId, newPass, callback) => {
+  const query = {
+    _id: convertId(userId),
+  };
+
+  // Encrypt new password and save to database
+  return AccountModel.encryptPassword(newPass, (salt, hash) => {
+    const update = {
+      salt,
+      password: hash,
+    };
+
+    return AccountModel.findByIdAndUpdate(query, update, callback);
+  });
+};
+
 // Function to encrypt the password before saving it to
 // the database
 AccountSchema.statics.encryptPassword = (password, callback) => {
@@ -81,7 +101,7 @@ AccountSchema.statics.encryptPassword = (password, callback) => {
   });
 };
 
-// Function to authenticate the user (check if the used the
+// Function to authenticate the user (check if they used the
 // correct username and password)
 AccountSchema.statics.authenticateUser = (username, password, callback) => {
   // Get the user data from the database based on the username provided

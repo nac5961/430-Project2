@@ -5,7 +5,7 @@ const handleLogin = (e) => {
 	
 	//Validate input
 	if ($("#username").val() === '' || $("#password").val() === ''){
-		handleError("Username or Password is empty");
+		displayMessage("Username or Password is empty");
 		return false;
 	}
 	
@@ -23,11 +23,11 @@ const handleSignup = (e) => {
 	
 	//Validate input
 	if ($("#username").val() === '' || $("#password").val() === '' || $("#password2").val() === ''){
-		handleError("All fields are required");
+		displayMessage("All fields are required");
 		return false;
 	}
 	else if ($("#password").val() !== $("#password2").val()){
-		handleError("Passwords do not match");
+		displayMessage("Passwords do not match");
 		return false;
 	}
 	
@@ -88,7 +88,7 @@ const renderLoginForm = (csrf) => {
 	document.getElementById("toSignup").onclick = () => {
 		renderSignupForm(csrf);
 	};
-}
+};
 
 //Function to render the signup form to the page
 const renderSignupForm = (csrf) => {
@@ -109,13 +109,11 @@ const setupDefaultView = (csrf) => {
 	renderSignupForm(csrf);
 };
 
-//Function to get a CSRF token from the server for security
-const getToken = () => {
-	console.log('sent request');
-	sendAjax('GET', '/getToken', null, (result) => {
-		console.log('gottoken');
-		setupDefaultView(result.csrfToken);
+//Note: $(document).ready() is similar to window.onload = init;
+//Make a call to get the token and render the forms
+//when the page loads
+$(document).ready(() => {
+	getToken((token) => {
+		setupDefaultView(token.csrfToken);
 	});
-};
-
-window.onload = getToken;
+});

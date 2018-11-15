@@ -1,11 +1,15 @@
 // Import custom files
 const models = require('../models');
+const helper = require('./helper.js');
 
 // Get the Account models
 const Account = models.Account;
 
 // Function to display the home page
-const homePage = (req, res) => res.render('home', { csrfToken: req.csrfToken() });
+const homePage = (req, res) => res.render('home');
+
+// Function to display the about page
+const aboutPage = (req, res) => res.render('about');
 
 // Function to logout the user by removing their
 // session and sending them back to the home page
@@ -20,8 +24,8 @@ const login = (req, res) => {
 
   // This converts the data to strings to make
   // sure we're saving string data
-  const username = `${req.body.username}`;
-  const password = `${req.body.password}`;
+  const username = helper.verifyString(`${req.body.username}`);
+  const password = helper.verifyString(`${req.body.password}`);
 
   // Validate data
   if (!username || !password) {
@@ -48,14 +52,17 @@ const signup = (req, res) => {
 
   // This converts the data to strings to make
   // sure we're saving string data
-  const username = `${req.body.username}`;
-  const password = `${req.body.password}`;
-  const password2 = `${req.body.password2}`;
+  const username = helper.verifyString(`${req.body.username}`);
+  const password = helper.verifyString(`${req.body.password}`);
+  const password2 = helper.verifyString(`${req.body.password2}`);
 
   // Validate data
   if (!username || !password || !password2) {
     return res.status(400).json({ error: 'All fields are required' });
-  } else if (password !== password2) {
+  }
+
+  // Check if passwords match
+  if (password !== password2) {
     return res.status(400).json({ error: 'Passwords do not match' });
   }
 
@@ -95,14 +102,63 @@ const signup = (req, res) => {
   });
 };
 
+// Function to update the user's password
+const updatePassword = (req, res) => {
+  const sessionAcc = req.session.account;
+
+  // This converts the data to strings to make
+  // sure we're saving string data
+  const oldPassword = helper.verifyString(`${req.body.oldPassword}`);
+  const newPassword = helper.verifyString(`${req.body.newPassword}`);
+  const newPassword2 = helper.verifyString(`${req.body.newPassword2}`);
+
+  // Verify data
+  if (!oldPassword || !newPassword || !newPassword2) {
+    return res.status(400).json({ error: 'All fields are required' });
+  }
+
+  // Check if passwords match
+  if (newPassword !== newPassword2) {
+    return res.status(400).json({ error: 'Passwords do not match' });
+  }
+
+  // Check if the oldPassword is correct
+  return Account.AccountModel.authenticateUser(sessionAcc.username, oldPassword, (err, account) => {
+    if (err) {
+      console.log(err);
+      return res.status(400).json({ error: 'An error occurred' });
+    }
+
+    if (!account) {
+      return res.status(401).json({ error: 'Wrong password' });
+    }
+
+	// Update the password
+    return Account.AccountModel.updatePassword(account._id, newPassword, (err2, doc) => {
+      if (err2) {
+        console.log(err2);
+        return res.status(400).json({ error: 'An error occurred' });
+      }
+
+      if (!doc) {
+        return res.json({ message: 'Account does not exist' });
+      }
+
+      return res.json({ message: 'Password Updated' });
+    });
+  });
+};
+
 // Function to give each page a one-time token
 // to protect against stealing sessions
 const getToken = (req, res) => res.json({ csrfToken: req.csrfToken() });
 
 module.exports = {
   homePage,
+  aboutPage,
   logout,
   login,
   signup,
+  update: updatePassword,
   getToken,
 };

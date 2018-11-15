@@ -17,7 +17,7 @@ const router = require('./router.js');
 
 // Set environment variables
 const port = process.env.PORT || process.env.NODE_PORT || 3000;
-const mongoURL = process.env.MONGODB_URI || 'mongodb://localhost/Test';
+const mongoURL = process.env.MONGODB_URI || 'mongodb://localhost/TrackerLocal';
 
 // Setup connection to mongoDB
 // Stop server if connection failed
@@ -43,10 +43,12 @@ if (process.env.REDISCLOUD_URL) {
 
 // Setup express
 const app = express();
+
 app.use('/assets', express.static(path.resolve(`${__dirname}/../hosted/`))); // Route to /assets
 app.use(favicon(`${__dirname}/../hosted/img/favicon.png`)); // Middleware to handle favicon requests
 app.disable('x-powered-by'); // Hides header that shows the server framework for security reasons
 app.use(compression()); // Setup middleware to compress responses to make them smaller and faster
+app.use(bodyParser.json()); // Setup middleware to parse json data in the body of the requests
 app.use(bodyParser.urlencoded({
   extended: true,
 })); // Setup middleware to parse urlencoded data in the body of requests
@@ -80,7 +82,7 @@ app.use((err, req, res, next) => {
   // If everything is ok, continue on with the request
   if (err.code !== 'EBADCSRFTOKEN') return next(err);
 
-  // Do nothing if someone tampered with the session
+  // Do nothing if someone tampered with the session or doesn't have a token
   console.log('Missing CSRF token');
   return false;
 }); // Error handling

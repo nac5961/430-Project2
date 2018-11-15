@@ -26,7 +26,7 @@
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.4.1/css/bootstrap-datepicker3.css"/>
 
 	<!-- Custom CSS -->
-	<link rel="stylesheet" type="text/css" href="/assets/style.css" />
+	<link rel="stylesheet" type="text/css" href="../../hosted/style.css" />
 </head>
 <body> 
 	<header>
@@ -38,14 +38,37 @@
 		<a class="nav" href="/display">Display</a>
 	</header>
 	
-	<p id="message"></p>
-	
-	<div id="form-creation-container">
-		<button id="create-button" class="active-button">Create New</button>
-		<button id="update-button" class="inactive-button">Update Existing</button>
+	<div id="premium-container">
+		<h1>Become a Premium Member</h1>
+		<p>As a Premium Member, enjoy the perks of having more control over your payments.
+		For as little as $5.99/month, you'll have unlimited access to the following
+		benefits. You can cancel at anytime.</p>
 		
-		<div id="form-creation-content">
+		<div>
+			<div class="premium-info">
+				<p><img src="../../hosted/img/budget-icon.png" /></p>
+				<p class="highlight">CREATE A BUDGET</p>
+				<p>Create a monthly or yearly budget to manage
+				your expenses.</p>
+			</div>
+			
+			<div class="premium-info">
+				<p><img src="../../hosted/img/email-icon.png" /></p>
+				<p class="highlight">LINK EMAIL CALENDAR SERVICES</p>
+				<p>View all payment information in your email
+				provider's calendar service.</p>
+			</div>
+			
+			<div class="premium-info">
+				<p><img src="../../hosted/img/repeat-icon.png" /></p>
+				<p class="highlight">AUTOMATE PAYMENTS</p>
+				<p>Setup payments to be created once per week, month,
+				or year.</p>
+			</div>
+		</div>
 		
+		<div>
+			<button class="submit">Join Now</button>
 		</div>
 	</div>
 </body>

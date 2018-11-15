@@ -7,7 +7,7 @@ var handleLogin = function handleLogin(e) {
 
 	//Validate input
 	if ($("#username").val() === '' || $("#password").val() === '') {
-		handleError("Username or Password is empty");
+		displayMessage("Username or Password is empty");
 		return false;
 	}
 
@@ -25,10 +25,10 @@ var handleSignup = function handleSignup(e) {
 
 	//Validate input
 	if ($("#username").val() === '' || $("#password").val() === '' || $("#password2").val() === '') {
-		handleError("All fields are required");
+		displayMessage("All fields are required");
 		return false;
 	} else if ($("#password").val() !== $("#password2").val()) {
-		handleError("Passwords do not match");
+		displayMessage("Passwords do not match");
 		return false;
 	}
 
@@ -124,28 +124,36 @@ var setupDefaultView = function setupDefaultView(csrf) {
 	renderSignupForm(csrf);
 };
 
-//Function to get a CSRF token from the server for security
-var getToken = function getToken() {
-	console.log('sent request');
-	sendAjax('GET', '/getToken', null, function (result) {
-		console.log('gottoken');
-		setupDefaultView(result.csrfToken);
+//Note: $(document).ready() is similar to window.onload = init;
+//Make a call to get the token and render the forms
+//when the page loads
+$(document).ready(function () {
+	getToken(function (token) {
+		setupDefaultView(token.csrfToken);
 	});
+});
+'use strict';
+
+//Function to display errors and other messages
+var displayMessage = function displayMessage(message) {
+	var messageElement = document.getElementById('message');
+	messageElement.textContent = message;
+
+	$("#message").stop(true, true).fadeIn('slow').animate({ opacity: 1 }, 2000).fadeOut('slow');
 };
 
-window.onload = getToken;
-"use strict";
-
-//Function to display errors
-var handleError = function handleError(message) {
-	//const errorMessage = document.querySelector("#errorMessage");
-	//errorMessage.textContent = message;
-	console.log(message);
-};
-
-//Function to redirect the user to another page
+//Function to redirect the user to another page or display a message
 var redirect = function redirect(response) {
-	window.location = response.redirect;
+	if (response.redirect) {
+		window.location = response.redirect;
+	} else if (response.message) {
+		displayMessage(response.message);
+	}
+};
+
+//Function to get a CSRF token from the server for security
+var getToken = function getToken(callback) {
+	sendAjax('GET', '/getToken', null, callback);
 };
 
 //Function to send an AJAX request to the server
@@ -156,12 +164,14 @@ var sendAjax = function sendAjax(type, action, data, callback) {
 		url: action,
 		data: data,
 		dataType: "json",
-		success: function success(json) {
-			callback(json);
+		success: function success(returnedJSON) {
+			callback(returnedJSON);
 		},
 		error: function error(xhr, status, _error) {
-			var messageObj = JSON.parse(xhr.responseText);
-			handleError(messageObj.error);
+			if (xhr && xhr.status !== 200) {
+				var messageObj = JSON.parse(xhr.responseText);
+				displayMessage(messageObj.error);
+			}
 		}
 	});
 };
